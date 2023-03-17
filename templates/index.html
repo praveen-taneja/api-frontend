@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <title>Sentiment Analysis</title>
+        <link rel="stylesheet" href="../static/css/main.css">
+    </head>
+    <body>
+        <h1><b>Welcome to my sentiment analysis demo webapp!</b></h1>
+        <p>I used a Distilbert model that was fine tuned for sentiment classification and deployed it on AWS Lambda using a docker image deployment package. This webapp itself is hosted on S3. Give it a try!<br><br>
+        <i>Note - It may take a few seconds to return a response the first time</i> 
+        </p>
+        <form id="form" method="post">
+            <input name="text_name" type="text" placeholder="Enter text for sentiment analysis">
+            <input type="submit" value="Submit">
+        </form>
+        <div id="results"></div>
+
+        <footer>Want to share feedback? Great! Send me a message via <a href="https://www.linkedin.com/in/praveentaneja/">LinkedIn</a></footer>
+    </body>
+    <script>
+        
+        /*  async function callAPI(url, payload){
+                const response = await fetch(url, payload);
+                const data = await response.json();
+                //const mock_data = {"message": "ok","sentiment": [{"label": "POSITIVE", "score": 0.9998608231544495}]}
+
+                return data;
+            } */
+        
+        const form=document.getElementById('form')
+        form.addEventListener('submit', function(e){
+            //prevent auto submission
+            e.preventDefault()
+
+            const formData = new FormData(form)
+            console.log(formData.get('text_name'))
+
+            const dataEntries = Object.fromEntries(formData)
+            console.log(dataEntries)
+
+            /*let data = callAPI("https://sn9lrgrfw4.execute-api.us-east-1.amazonaws.com/Prod/sentiment-analysis/", {
+                method: 'POST',
+                headers:{
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    message: "He is foolish"})
+                })*/
+
+            // fetch post request
+            fetch(URL="https://sn9lrgrfw4.execute-api.us-east-1.amazonaws.com/Prod/sentiment-analysis/", {
+                method: 'POST',
+                headers:{
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    message: formData.get('text_name')
+                })
+            }).then((res) => res.json())
+                .then((data) => {
+
+                    console.log("Success:", data);
+
+                    const message = data.message
+                    const sentiment = data.sentiment
+
+                    const results = document.getElementById('results')
+                    results.innerHTML = `<p>The sentiment of the text is ${sentiment[0]['label']}</p>
+                    <p> Confidence score [0-100] = ${Math.round(sentiment[0]['score']*10000)/100}</p>`
+                })
+                .catch((error) => {
+                    console.log("Error:", error)
+                })                    
+        })
+    </script>
+</html>
